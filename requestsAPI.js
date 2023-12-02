@@ -1,11 +1,11 @@
-const addToCart = (key) => {
+const callToApi = (id, action) => {
 
-	fetch('./process.php', {
+	fetch('./api.php', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 		},
-		body: JSON.stringify({key: key})
+		body: JSON.stringify({id: id, action: action})
 	})
 	.then((response) => {
 		console.log('resp', response.body);
@@ -20,5 +20,5 @@ const addToCart = (key) => {
 		console.log('Data received : ', data);
 	});
 
-	window.location.reload();
+	// window.location.reload();
 }
