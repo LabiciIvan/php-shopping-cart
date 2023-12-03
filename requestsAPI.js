@@ -20,5 +20,5 @@ const callToApi = (id, action) => {
 		console.log('Data received : ', data);
 	});
 
-	// window.location.reload();
+	window.location.reload();
 }
