@@ -13,8 +13,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 	if (isset($key['action']) && ($key['action'] === 'add' || $key['action'] === 'increase')) {
 		addToCart($key, $data);
-	} else if (isset($key['action']) && ($key['action'] === 'remove' || $key['action'] === 'decrease')) {
-		removeFromCart($key['id'], $key['action']);
+	} else if (isset($key['action']) && $key['action'] === 'remove') {
+		removeFromCart($key['id']);
+	} else if (isset($key['action']) && $key['action'] === 'decrease') {
+		decrementQuantity($key['id']);
 	}
 
 	echo json_encode(["message" => "Request was a success."]);
@@ -31,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
  * Items in cart are saved in cookies.
  * 
  * @param	string	$key	position of item in $data array.
- * @param	array	$data	each item from database.products.php file.
+ * @param	array	$data	each item from products.php file.
  */
 function addToCart($key, $data): void {
 
@@ -71,15 +73,14 @@ function addToCart($key, $data): void {
 /**
  * Remove or decrease cart items.
  * 
- * Will remove or decrease the quantity of the cart items.
+ * Will remove cart items.
  * 
  * If after removing items from cart there will be no more items left, then
  * will terminate the cookie as well, as there are no reason to keep it.
  * 
  * @param	string	$id		identification number of item in cookies.
- * @param	string	$action	decision to remove item or to decrease quantity.
  */
-function removeFromCart($id, $action): void {
+function removeFromCart($id): void {
 	// Retrieve data from cookies.
 	$cart_products = (isset($_COOKIE['products']) ? json_decode($_COOKIE['products'], true) : null);
 
@@ -104,6 +105,46 @@ function removeFromCart($id, $action): void {
 	} else {
 		// Update cookies with new array without the specified element.
 		setcookie('products', json_encode($cart_products), time() + 360);
+	}
+}
+
+/**
+ * Decrement the cart quantity.
+ * 
+ * Before decrementing the cart quantity, it is taken in consideration the case
+ * where the quantity might be just 1, in this case it will use {@link removeFromCart()} to
+ * remove the element from the cart.
+ * 
+ * @param	string	$id		identification number of item in cookies.
+ */
+function decrementQuantity($id): void {
+
+	$cart_products = (isset($_COOKIE['products']) ? json_decode($_COOKIE['products'], true) : null);
+
+	$to_be_removed = null;
+
+	if (isset($cart_products)) {
+		foreach ($cart_products['products'] as &$product) {
+
+			// Check if item is the one we are looking for.
+			if ((int)$product['id'] === (int)$id) {
+				
+				// When item is found will decrement quantity or mark it as to be removed.
+				if ((int)$product['quantity'] === 1) {
+					$to_be_removed = true;
+				} else {
+					$product['quantity'] = (int)$product['quantity'] - 1;
+				}
+			}
+		}
+	}
+
+	// If it was not morked to be removed will just update the cookie with new item
+	// quantity, otherwise it will call the above function to remove item from cart.
+	if (!isset($to_be_removed)) {
+		setcookie('products', json_encode($cart_products), time() + 360);
+	} else {
+		removeFromCart($id);
 	}
 }
 ?>
