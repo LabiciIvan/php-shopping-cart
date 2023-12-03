@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	if (isset($key['action']) && ($key['action'] === 'add' || $key['action'] === 'increase')) {
 		addToCart($key, $data);
 	} else if (isset($key['action']) && ($key['action'] === 'remove' || $key['action'] === 'decrease')) {
-		removeFromCart($key['id']);
+		removeFromCart($key['id'], $key['action']);
 	}
 
 	echo json_encode(["message" => "Request was a success."]);
@@ -68,7 +68,42 @@ function addToCart($key, $data): void {
 	}
 }
 
-function removeFromCart($id):void {
-	// @TO DO
+/**
+ * Remove or decrease cart items.
+ * 
+ * Will remove or decrease the quantity of the cart items.
+ * 
+ * If after removing items from cart there will be no more items left, then
+ * will terminate the cookie as well, as there are no reason to keep it.
+ * 
+ * @param	string	$id		identification number of item in cookies.
+ * @param	string	$action	decision to remove item or to decrease quantity.
+ */
+function removeFromCart($id, $action): void {
+	// Retrieve data from cookies.
+	$cart_products = (isset($_COOKIE['products']) ? json_decode($_COOKIE['products'], true) : null);
+
+	$to_remove = null;
+
+	// Iterate products from cookies to find which index element to remove from array.
+	if (isset($cart_products)) {
+		foreach ($cart_products['products'] as $key => $product) {
+
+			if ((int)$product['id'] === (int)$id) {
+				$to_remove = $key;
+			}
+		}
+	}
+
+	// Remove the product from the cart.
+	array_splice($cart_products['products'], $to_remove, 1);
+
+	// Eliminate cookie if there are no more products.
+	if (count($cart_products['products']) === 0) {
+		setcookie('products', json_encode($cart_products), time() - 360);
+	} else {
+		// Update cookies with new array without the specified element.
+		setcookie('products', json_encode($cart_products), time() + 360);
+	}
 }
 ?>
