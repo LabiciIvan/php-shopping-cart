@@ -26,7 +26,10 @@
 					"<td>{$product['name']}</td>" .
 					"<td>{$product['quantity']}</td>" .
 					"<td>{$product['price']}</td>" .
-					"<td><button class='add-btn'>+</button><button class='add-btn'>-</button></td>" .
+					"<td>".
+						"<button class='add-btn' onClick=\"callToApi('". $product['id'] ."', 'increase')\">+</button>". 
+						"<button class='add-btn' onClick=\"callToApi('". $product['id'] ."', 'decrease')\" >-</button>".
+					"</td>" .
 					"<td><button class='cart-link' onClick=\"callToApi('".$product['id']."', 'remove')\">Remove</button></td>" .
 				"</tr>";
 		}
